@@ -1,6 +1,7 @@
 Pod::Spec.new do |s|
     s.name = "WPKeychainItemWrapper"
     s.summary = "KeychainItemWrapper For China"
+    s.authors = "wupengnash"
     s.homepage = "https://github.com/wupengnash/WPKeychainItemWrapper"
     s.license = { :type => "MIT", :file => "LICENSE" }
     s.platform = :ios
