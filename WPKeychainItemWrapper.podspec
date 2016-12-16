@@ -12,7 +12,8 @@ Pod::Spec.new do |s|
     s.default_subspec = 'standard'
     s.source = {
         :git => "https://github.com/wupengnash/WPKeychainItemWrapper.git",
-        :tag => "#{s.version}"
+        # :tag => "#{s.version}"
+        :tag => "1.2"
     }
     s.subspec 'standard' do |standard|
       standard.source_files = "WPKeychainItemWrapper/*.{h,m}"
