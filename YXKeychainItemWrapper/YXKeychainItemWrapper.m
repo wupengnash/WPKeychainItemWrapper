@@ -1,7 +1,7 @@
 /*
-     File: KeychainItemWrapper.m
+     File: WPKeychainItemWrapper.m
  Abstract:
- Objective-C wrapper for accessing a single keychain item.
+ Objective-C wrapper for accessing a single WPKeychain item.
 
   Version: 1.2
 
@@ -47,13 +47,13 @@
 
 */
 
-#import "KeychainItemWrapper.h"
+#import "WPKeychainItemWrapper.h"
 #import <Security/Security.h>
 
 /*
 
 These are the default constants and their respective types,
-available for the kSecClassGenericPassword Keychain Item class:
+available for the kSecClassGenericPassword WPKeychain Item class:
 
 kSecAttrAccessGroup         -       CFStringRef
 kSecAttrCreationDate        -       CFDateRef
@@ -73,45 +73,45 @@ See the header file Security/SecItem.h for more details.
 
 */
 
-@interface KeychainItemWrapper (PrivateMethods)
+@interface WPKeychainItemWrapper (PrivateMethods)
 /*
 The decision behind the following two methods (secItemFormatToDictionary and dictionaryToSecItemFormat) was
 to encapsulate the transition between what the detail view controller was expecting (NSString *) and what the
-Keychain API expects as a validly constructed container class.
+WPKeychain API expects as a validly constructed container class.
 */
 - (NSMutableDictionary *)secItemFormatToDictionary:(NSDictionary *)dictionaryToConvert;
 - (NSMutableDictionary *)dictionaryToSecItemFormat:(NSDictionary *)dictionaryToConvert;
 
-// Updates the item in the keychain, or adds it if it doesn't exist.
-- (void)writeToKeychain;
+// Updates the item in the WPKeychain, or adds it if it doesn't exist.
+- (void)writeToWPKeychain;
 
 @end
 
-@implementation KeychainItemWrapper
+@implementation WPKeychainItemWrapper
 
-@synthesize keychainItemData, genericPasswordQuery;
+@synthesize WPKeychainItemData, genericPasswordQuery;
 
 - (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *) accessGroup;
 {
     if (self = [super init])
     {
-        // Begin Keychain search setup. The genericPasswordQuery leverages the special user
-        // defined attribute kSecAttrGeneric to distinguish itself between other generic Keychain
+        // Begin WPKeychain search setup. The genericPasswordQuery leverages the special user
+        // defined attribute kSecAttrGeneric to distinguish itself between other generic WPKeychain
         // items which may be included by the same application.
         genericPasswordQuery = [[NSMutableDictionary alloc] init];
 
         [genericPasswordQuery setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
         [genericPasswordQuery setObject:identifier forKey:(id)kSecAttrGeneric];
 
-        // The keychain access group attribute determines if this item can be shared
-        // amongst multiple apps whose code signing entitlements contain the same keychain access group.
+        // The WPKeychain access group attribute determines if this item can be shared
+        // amongst multiple apps whose code signing entitlements contain the same WPKeychain access group.
         if (accessGroup != nil)
         {
 #if TARGET_IPHONE_SIMULATOR
             // Ignore the access group if running on the iPhone simulator.
             //
-            // Apps that are built for the simulator aren't signed, so there's no keychain access group
-            // for the simulator to check. This means that all apps can see all keychain items when run
+            // Apps that are built for the simulator aren't signed, so there's no WPKeychain access group
+            // for the simulator to check. This means that all apps can see all WPKeychain items when run
             // on the simulator.
             //
             // If a SecItem contains an access group attribute, SecItemAdd and SecItemUpdate on the
@@ -131,31 +131,31 @@ Keychain API expects as a validly constructed container class.
 
         if (! SecItemCopyMatching((CFDictionaryRef)tempQuery, (CFTypeRef *)&outDictionary) == noErr)
         {
-            // Stick these default values into keychain item if nothing found.
-            [self resetKeychainItem];
+            // Stick these default values into WPKeychain item if nothing found.
+            [self resetWPKeychainItem];
 
-            // Add the generic attribute and the keychain access group.
-            [keychainItemData setObject:identifier forKey:(id)kSecAttrGeneric];
+            // Add the generic attribute and the WPKeychain access group.
+            [WPKeychainItemData setObject:identifier forKey:(id)kSecAttrGeneric];
             if (accessGroup != nil)
             {
 #if TARGET_IPHONE_SIMULATOR
                 // Ignore the access group if running on the iPhone simulator.
                 //
-                // Apps that are built for the simulator aren't signed, so there's no keychain access group
-                // for the simulator to check. This means that all apps can see all keychain items when run
+                // Apps that are built for the simulator aren't signed, so there's no WPKeychain access group
+                // for the simulator to check. This means that all apps can see all WPKeychain items when run
                 // on the simulator.
                 //
                 // If a SecItem contains an access group attribute, SecItemAdd and SecItemUpdate on the
                 // simulator will return -25243 (errSecNoAccessForItem).
 #else
-                [keychainItemData setObject:accessGroup forKey:(id)kSecAttrAccessGroup];
+                [WPKeychainItemData setObject:accessGroup forKey:(id)kSecAttrAccessGroup];
 #endif
             }
         }
         else
         {
-            // load the saved data from Keychain.
-            self.keychainItemData = [self secItemFormatToDictionary:outDictionary];
+            // load the saved data from WPKeychain.
+            self.WPKeychainItemData = [self secItemFormatToDictionary:outDictionary];
         }
 
         [outDictionary release];
@@ -166,7 +166,7 @@ Keychain API expects as a validly constructed container class.
 
 - (void)dealloc
 {
-    [keychainItemData release];
+    [WPKeychainItemData release];
     [genericPasswordQuery release];
 
     [super dealloc];
@@ -175,40 +175,40 @@ Keychain API expects as a validly constructed container class.
 - (void)setObject:(id)inObject forKey:(id)key
 {
     if (inObject == nil) return;
-    id currentObject = [keychainItemData objectForKey:key];
+    id currentObject = [WPKeychainItemData objectForKey:key];
     if (![currentObject isEqual:inObject])
     {
-        [keychainItemData setObject:inObject forKey:key];
-        [self writeToKeychain];
+        [WPKeychainItemData setObject:inObject forKey:key];
+        [self writeToWPKeychain];
     }
 }
 
 - (id)objectForKey:(id)key
 {
-    return [keychainItemData objectForKey:key];
+    return [WPKeychainItemData objectForKey:key];
 }
 
-- (void)resetKeychainItem
+- (void)resetWPKeychainItem
 {
     OSStatus junk = noErr;
-    if (!keychainItemData)
+    if (!WPKeychainItemData)
     {
-        self.keychainItemData = [[NSMutableDictionary alloc] init];
+        self.WPKeychainItemData = [[NSMutableDictionary alloc] init];
     }
-    else if (keychainItemData)
+    else if (WPKeychainItemData)
     {
-        NSMutableDictionary *tempDictionary = [self dictionaryToSecItemFormat:keychainItemData];
+        NSMutableDictionary *tempDictionary = [self dictionaryToSecItemFormat:WPKeychainItemData];
         junk = SecItemDelete((CFDictionaryRef)tempDictionary);
         NSAssert( junk == noErr || junk == errSecItemNotFound, @"Problem deleting current dictionary." );
     }
 
-    // Default attributes for keychain item.
-    [keychainItemData setObject:@"" forKey:(id)kSecAttrAccount];
-    [keychainItemData setObject:@"" forKey:(id)kSecAttrLabel];
-    [keychainItemData setObject:@"" forKey:(id)kSecAttrDescription];
+    // Default attributes for WPKeychain item.
+    [WPKeychainItemData setObject:@"" forKey:(id)kSecAttrAccount];
+    [WPKeychainItemData setObject:@"" forKey:(id)kSecAttrLabel];
+    [WPKeychainItemData setObject:@"" forKey:(id)kSecAttrDescription];
 
-    // Default data for keychain item.
-    [keychainItemData setObject:@"" forKey:(id)kSecValueData];
+    // Default data for WPKeychain item.
+    [WPKeychainItemData setObject:@"" forKey:(id)kSecValueData];
 }
 
 - (NSMutableDictionary *)dictionaryToSecItemFormat:(NSDictionary *)dictionaryToConvert
@@ -219,7 +219,7 @@ Keychain API expects as a validly constructed container class.
     // Create a dictionary to return populated with the attributes and data.
     NSMutableDictionary *returnDictionary = [NSMutableDictionary dictionaryWithDictionary:dictionaryToConvert];
 
-    // Add the Generic Password keychain item class attribute.
+    // Add the Generic Password WPKeychain item class attribute.
     [returnDictionary setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
 
     // Convert the NSString to NSData to meet the requirements for the value type kSecValueData.
@@ -260,8 +260,8 @@ Keychain API expects as a validly constructed container class.
         /*
          * ZhangQigang: 未知原因出错, 屏蔽崩溃, 记录下 LOG
          */
-        //NSAssert(NO, @"Serious error, no matching item found in the keychain.\n");
-        NSLog(@"Serious error, no matching item found in the keychain");
+        //NSAssert(NO, @"Serious error, no matching item found in the WPKeychain.\n");
+        NSLog(@"Serious error, no matching item found in the WPKeychain");
     }
 
     [passwordData release];
@@ -269,7 +269,7 @@ Keychain API expects as a validly constructed container class.
     return returnDictionary;
 }
 
-- (void)writeToKeychain
+- (void)writeToWPKeychain
 {
     NSDictionary *attributes = NULL;
     NSMutableDictionary *updateItem = NULL;
@@ -277,20 +277,20 @@ Keychain API expects as a validly constructed container class.
 
     if (SecItemCopyMatching((CFDictionaryRef)genericPasswordQuery, (CFTypeRef *)&attributes) == noErr)
     {
-        // First we need the attributes from the Keychain.
+        // First we need the attributes from the WPKeychain.
         updateItem = [NSMutableDictionary dictionaryWithDictionary:attributes];
         // Second we need to add the appropriate search key/values.
         [updateItem setObject:[genericPasswordQuery objectForKey:(id)kSecClass] forKey:(id)kSecClass];
 
         // Lastly, we need to set up the updated attribute list being careful to remove the class.
-        NSMutableDictionary *tempCheck = [self dictionaryToSecItemFormat:keychainItemData];
+        NSMutableDictionary *tempCheck = [self dictionaryToSecItemFormat:WPKeychainItemData];
         [tempCheck removeObjectForKey:(id)kSecClass];
 
 #if TARGET_IPHONE_SIMULATOR
         // Remove the access group if running on the iPhone simulator.
         //
-        // Apps that are built for the simulator aren't signed, so there's no keychain access group
-        // for the simulator to check. This means that all apps can see all keychain items when run
+        // Apps that are built for the simulator aren't signed, so there's no WPKeychain access group
+        // for the simulator to check. This means that all apps can see all WPKeychain items when run
         // on the simulator.
         //
         // If a SecItem contains an access group attribute, SecItemAdd and SecItemUpdate on the
@@ -307,16 +307,16 @@ Keychain API expects as a validly constructed container class.
         /*
          * ZhangQigang: 未知原因出错, 屏蔽崩溃, 记录下 LOG
          */
-        //NSAssert( result == noErr, @"Couldn't update the Keychain Item." );
-        NSLog(@"Couldn't update the Keychain Item.");
+        //NSAssert( result == noErr, @"Couldn't update the WPKeychain Item." );
+        NSLog(@"Couldn't update the WPKeychain Item.");
     } else {
         // No previous item found; add the new one.
-        result = SecItemAdd((CFDictionaryRef)[self dictionaryToSecItemFormat:keychainItemData], NULL);
+        result = SecItemAdd((CFDictionaryRef)[self dictionaryToSecItemFormat:WPKeychainItemData], NULL);
         /*
          * ZhangQigang: 未知原因出错, 屏蔽崩溃, 记录下 LOG
          */
-        //NSAssert( result == noErr, @"Couldn't add the Keychain Item." );
-        NSLog(@"Couldn't add the Keychain Item.");
+        //NSAssert( result == noErr, @"Couldn't add the WPKeychain Item." );
+        NSLog(@"Couldn't add the WPKeychain Item.");
     }
 }
 

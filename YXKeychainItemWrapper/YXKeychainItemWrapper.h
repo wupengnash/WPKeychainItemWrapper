@@ -1,7 +1,7 @@
 /*
-     File: KeychainItemWrapper.h
+     File: YXKeychainItemWrapper.h
  Abstract:
- Objective-C wrapper for accessing a single keychain item.
+ Objective-C wrapper for accessing a single YXKeychain item.
 
   Version: 1.2
 
@@ -50,17 +50,17 @@
 #import <UIKit/UIKit.h>
 
 /*
-    The KeychainItemWrapper class is an abstraction layer for the iPhone Keychain communication. It is merely a
-    simple wrapper to provide a distinct barrier between all the idiosyncracies involved with the Keychain
+    The YXKeychainItemWrapper class is an abstraction layer for the iPhone YXKeychain communication. It is merely a
+    simple wrapper to provide a distinct barrier between all the idiosyncracies involved with the YXKeychain
     CF/NS container objects.
 */
-@interface KeychainItemWrapper : NSObject
+@interface YXKeychainItemWrapper : NSObject
 {
-    NSMutableDictionary *keychainItemData;      // The actual keychain item data backing store.
-    NSMutableDictionary *genericPasswordQuery;  // A placeholder for the generic keychain item query used to locate the item.
+    NSMutableDictionary *YXKeychainItemData;      // The actual YXKeychain item data backing store.
+    NSMutableDictionary *genericPasswordQuery;  // A placeholder for the generic YXKeychain item query used to locate the item.
 }
 
-@property (nonatomic, retain) NSMutableDictionary *keychainItemData;
+@property (nonatomic, retain) NSMutableDictionary *YXKeychainItemData;
 @property (nonatomic, retain) NSMutableDictionary *genericPasswordQuery;
 
 // Designated initializer.
@@ -68,7 +68,7 @@
 - (void)setObject:(id)inObject forKey:(id)key;
 - (id)objectForKey:(id)key;
 
-// Initializes and resets the default generic keychain item data.
-- (void)resetKeychainItem;
+// Initializes and resets the default generic YXKeychain item data.
+- (void)resetYXKeychainItem;
 
 @end
